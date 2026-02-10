@@ -21,7 +21,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 // CORS configuration
 const corsOptions = {
   origin: isProduction
-    ? ['https://slot-booking-lime.vercel.app']
+    ? ['https://slotbooking1-slog-solutions-projects.vercel.app']
     : (origin, callback) => {
         // Allow any localhost origin in development
         if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1')) {
