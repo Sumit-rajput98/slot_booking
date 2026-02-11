@@ -19,7 +19,7 @@ import moment from 'moment';
 import 'react-datepicker/dist/react-datepicker.css';
 import QRCodeModal from './QRCodeModal';
 
-const AdminPanel = ({ user, role }) => {
+const AdminPanel = () => {
   // Admin panel state
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
@@ -175,11 +175,6 @@ const AdminPanel = ({ user, role }) => {
         <h2 className="text-3xl font-bold text-gray-900 mb-2">SLOG SOLUTIONS</h2>
         <h3 className="text-xl font-semibold text-gray-700 mb-2">Admin Dashboard</h3>
         <p className="text-gray-600">Manage bookings and view statistics</p>
-        {user && (
-          <p className="text-sm text-gray-500 mt-2">
-            Logged in as: {user.email || user.phone}
-          </p>
-        )}
       </div>
 
       {/* Statistics Cards */}

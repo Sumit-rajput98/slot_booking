@@ -5,6 +5,7 @@ import { Clock, User, Phone, FileText, MapPin, CheckCircle, RefreshCw } from 'lu
 import moment from 'moment';
 import CustomCalendar from './CustomCalendar';
 import QRCodeModal from './QRCodeModal';
+import ProfileModal from './ProfileModal';
 import { config } from '../config';
 
 const BookingInterface = () => {
@@ -29,6 +30,30 @@ const BookingInterface = () => {
   const [isLoadingSlotStatus, setIsLoadingSlotStatus] = useState(false);
   const [weeklyBookingStatus, setWeeklyBookingStatus] = useState(null);
   const [isCheckingWeeklyStatus, setIsCheckingWeeklyStatus] = useState(false);
+
+  // Profile state
+  const [profile, setProfile] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileRequired, setProfileRequired] = useState(false);
+
+  // Load profile on mount
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      const parsedProfile = JSON.parse(savedProfile);
+      setProfile(parsedProfile);
+      // Pre-fill booking form with profile data
+      setBookingForm(prev => ({
+        ...prev,
+        name: parsedProfile.name || '',
+        phone: parsedProfile.mobile || ''
+      }));
+    } else {
+      // Show profile modal on first visit
+      setShowProfileModal(true);
+      setProfileRequired(false);
+    }
+  }, []);
 
   // Fetch live slot status
   const fetchLiveSlotStatus = async () => {
@@ -111,8 +136,30 @@ const BookingInterface = () => {
     }
   };
 
+  const handleProfileSave = (savedProfile) => {
+    setProfile(savedProfile);
+    setShowProfileModal(false);
+    setProfileRequired(false);
+    // Pre-fill booking form with profile data
+    setBookingForm(prev => ({
+      ...prev,
+      name: savedProfile.name || '',
+      phone: savedProfile.mobile || ''
+    }));
+    toast.success('Profile saved successfully!');
+  };
+
+  const handleProfileClose = () => {
+    setShowProfileModal(false);
+  };
+
   const handleSlotSelect = (slot) => {
     setSelectedSlot(slot);
+    // If profile not complete, show modal after slot selection
+    if (!profile) {
+      setShowProfileModal(true);
+      setProfileRequired(true);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -152,6 +199,14 @@ const BookingInterface = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if profile is complete
+    if (!profile) {
+      toast.error('Please complete your profile before booking');
+      setShowProfileModal(true);
+      setProfileRequired(true);
+      return;
+    }
+
     if (!selectedSlot) {
       toast.error('Please select a time slot');
       return;
@@ -499,6 +554,14 @@ const BookingInterface = () => {
         onClose={() => setShowQRModal(false)}
         bookingData={bookingConfirmation}
         isUserView={true}
+      />
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={handleProfileClose}
+        onSave={handleProfileSave}
+        isRequired={profileRequired}
       />
     </div>
   );

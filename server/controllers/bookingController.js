@@ -32,13 +32,16 @@ class BookingController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { phone, date } = req.body;
+      const { phone, date, name, armyNumber } = req.body;
+      
+      // Check weekly limit
       const weekly = await this.checkWeeklyBookingRestriction(phone, date);
       
       if (weekly > 0) {
         return res.status(409).json({ error: 'Weekly limit reached' });
       }
 
+      // Save booking
       const { data, error } = await supabase
         .from('bookings')
         .insert(req.body)
@@ -46,6 +49,44 @@ class BookingController {
         .single();
 
       if (error) throw error;
+
+      // Also save/update profile in public_profile table
+      if (armyNumber && name && phone) {
+        try {
+          // Check if profile exists
+          const { data: existingProfile } = await supabase
+            .from('public_profile')
+            .select('id')
+            .eq('army_number', armyNumber)
+            .single();
+
+          if (existingProfile) {
+            // Update existing profile
+            await supabase
+              .from('public_profile')
+              .update({
+                name,
+                mobile: phone,
+                updated_at: new Date().toISOString()
+              })
+              .eq('army_number', armyNumber);
+          } else {
+            // Create new profile
+            await supabase
+              .from('public_profile')
+              .insert({
+                army_number: armyNumber,
+                name,
+                mobile: phone,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+          }
+        } catch (profileError) {
+          console.error('Error saving profile from booking:', profileError);
+          // Don't fail the booking if profile save fails
+        }
+      }
 
       res.status(201).json(data);
     } catch (error) {
