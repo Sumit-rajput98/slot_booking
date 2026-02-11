@@ -1,21 +1,23 @@
 const express = require('express');
 const adminController = require('../controllers/adminController');
+const adminAuth = require('../middleware/adminAuth');
 
 const router = express.Router();
 
-// GET /api/admin/bookings
+// All admin routes require authentication
+router.use(adminAuth);
+
+// Bookings
 router.get('/bookings', adminController.getAllBookings);
-
-// GET /api/admin/stats
-router.get('/stats', adminController.getStats);
-
-// DELETE /api/admin/bookings/:id
 router.delete('/bookings/:id', adminController.deleteBooking);
-
-// DELETE /api/admin/bookings (bulk delete)
 router.delete('/bookings', adminController.deleteMultipleBookings);
+router.put('/bookings/:id/status', adminController.updateBookingStatus);
 
-// GET /api/admin/export
+// Stats & Analytics
+router.get('/stats', adminController.getStats);
+router.get('/analytics', adminController.getAnalytics);
+
+// Export
 router.get('/export', adminController.exportBookings);
 
 module.exports = router;
