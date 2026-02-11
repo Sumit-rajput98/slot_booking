@@ -33,22 +33,13 @@ const BulkSlotConfiguration = ({ onClose, onSuccess }) => {
   }, [startDate, endDate]);
 
   const handleStatusChange = (status) => {
+    // Don't modify maxSlots here - let backend calculate
+    // Just update the status
     let maxSlots = config.maxSlots || 1200;
     
-    if (status === 'half_day_pre' || status === 'half_day_post') {
-      if (!config.maxSlots || config.maxSlots === 1200) {
-        maxSlots = 600;
-      } else {
-        maxSlots = Math.floor(config.maxSlots / 2);
-      }
-    } else if (status === 'closed') {
+    // Only set to 0 for closed status
+    if (status === 'closed') {
       maxSlots = 0;
-    } else if (status === 'open') {
-      if (config.maxSlots < 1200) {
-        maxSlots = Math.min(config.maxSlots * 2, 1200);
-      } else {
-        maxSlots = 1200;
-      }
     }
     
     setConfig({ ...config, status, maxSlots });
@@ -250,7 +241,7 @@ const BulkSlotConfiguration = ({ onClose, onSuccess }) => {
             />
             <p className="text-xs text-gray-500 mt-1">
               {config.status === 'half_day_pre' || config.status === 'half_day_post' 
-                ? `Half day: ${config.maxSlots} slots (50% of full day)`
+                ? `Half day: ${Math.floor(config.maxSlots / 2)} slots will be available (50% of ${config.maxSlots})`
                 : config.status === 'closed'
                 ? 'Closed: No bookings allowed'
                 : `Full day: ${config.maxSlots} slots`
@@ -279,8 +270,15 @@ const BulkSlotConfiguration = ({ onClose, onSuccess }) => {
             <ul className="text-sm text-yellow-800 space-y-1">
               <li>• Dates: {previewDates.length} days</li>
               <li>• Status: {config.status.replace('_', ' ').toUpperCase()}</li>
-              <li>• Max Slots: {config.maxSlots} per day</li>
-              <li>• Total Capacity: {previewDates.length * config.maxSlots} slots</li>
+              <li>• Input Max Slots: {config.maxSlots} per day</li>
+              {(config.status === 'half_day_pre' || config.status === 'half_day_post') && (
+                <li>• Actual Slots: {Math.floor(config.maxSlots / 2)} per day (50% for half day)</li>
+              )}
+              <li>• Total Capacity: {previewDates.length * (
+                (config.status === 'half_day_pre' || config.status === 'half_day_post') 
+                  ? Math.floor(config.maxSlots / 2) 
+                  : config.maxSlots
+              )} slots</li>
             </ul>
           </div>
 

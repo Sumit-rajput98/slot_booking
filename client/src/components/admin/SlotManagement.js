@@ -104,26 +104,13 @@ const SlotManagement = () => {
   };
 
   const handleStatusChange = (status) => {
+    // Don't modify maxSlots here - let backend calculate
+    // Just update the status
     let maxSlots = formData.maxSlots || 1200;
     
-    // If changing to half day, calculate half of current max slots
-    if (status === 'half_day_pre' || status === 'half_day_post') {
-      // If current max is default 1200 or user hasn't entered anything, use 600
-      // Otherwise, use half of what user entered
-      if (!formData.maxSlots || formData.maxSlots === 1200) {
-        maxSlots = 600;
-      } else {
-        maxSlots = Math.floor(formData.maxSlots / 2);
-      }
-    } else if (status === 'closed') {
+    // Only set to 0 for closed status
+    if (status === 'closed') {
       maxSlots = 0;
-    } else if (status === 'open') {
-      // If switching back to open, restore to 1200 or double the current value
-      if (formData.maxSlots < 1200) {
-        maxSlots = Math.min(formData.maxSlots * 2, 1200);
-      } else {
-        maxSlots = 1200;
-      }
     }
     
     setFormData({ ...formData, status, maxSlots });
@@ -361,7 +348,7 @@ const SlotManagement = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {formData.status === 'half_day_pre' || formData.status === 'half_day_post' 
-                    ? `Half day: ${formData.maxSlots} slots (50% of full day)`
+                    ? `Half day: ${Math.floor(formData.maxSlots / 2)} slots will be available (50% of ${formData.maxSlots})`
                     : formData.status === 'closed'
                     ? 'Closed: No bookings allowed'
                     : `Full day: ${formData.maxSlots} slots`
