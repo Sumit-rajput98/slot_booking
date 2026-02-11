@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-export default function Register({ onLogin }) {
+export default function Register({ onLogin, onBack }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +31,7 @@ export default function Register({ onLogin }) {
     await supabase.from('candidates').insert({
       id: data.user.id,
       full_name: name,
-      role
+      role: role || 'USER'
     });
 
     onLogin(data.user);
@@ -70,9 +70,10 @@ export default function Register({ onLogin }) {
           onChange={e => setRole(e.target.value)}
         >
           <option value="">Select Role</option>
-          <option value="ADMIN">ADMIN</option>
-          <option value="JCO">JCO</option>
+          <option value="USER">USER</option>
           <option value="CO">CO</option>
+          <option value="JCO">JCO</option>
+          <option value="ADMIN">ADMIN</option>
         </select>
 
         <button className="w-full bg-primary-600 text-white py-2 rounded">
@@ -82,6 +83,13 @@ export default function Register({ onLogin }) {
 
       {error && <p className="text-red-600 mt-2">{error}</p>}
       {success && <p className="text-green-600 mt-2">{success}</p>}
+
+      <p className="text-sm mt-4 text-center">
+        Already have an account?{' '}
+        <button className="text-primary-600" onClick={onBack}>
+          Login
+        </button>
+      </p>
     </div>
   );
 }
